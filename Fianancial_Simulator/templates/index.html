@@ -1,0 +1,352 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>FinRisk Simulator</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <style>
+    .modal { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.5); z-index: 50; justify-content: center; align-items: center; }
+    .modal.active { display: flex; }
+    .hidden { display: none; }
+  </style>
+</head>
+<body class="bg-gray-50">
+
+  <!-- Navbar -->
+  <nav class="bg-blue-700 text-white p-4">
+    <div class="container mx-auto flex justify-between items-center">
+      <h1 class="text-2xl font-bold">FinRisk Simulator</h1>
+      <div id="user-info"></div>
+      <div class="space-x-2">
+        <button id="login-btn" class="bg-blue-600 hover:bg-blue-800 px-4 py-2 rounded">Connexion</button>
+        <button id="register-btn" class="bg-green-600 hover:bg-green-700 px-4 py-2 rounded">Inscription</button>
+        <button id="logout-btn" class="bg-red-600 hover:bg-red-700 px-4 py-2 rounded hidden">Déconnexion</button>
+      </div>
+    </div>
+  </nav>
+
+  <!-- Page de connexion -->
+  <div id="login-page" class="container mx-auto mt-16 text-center">
+    <h2 class="text-3xl font-bold mb-4">FinRisk Simulator</h2>
+    <p class="mb-8">Connectez-vous pour commencer.</p>
+    <div class="space-x-4">
+      <button id="login-btn-page" class="bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 rounded-lg">Connexion</button>
+      <button id="register-btn-page" class="bg-green-600 hover:bg-green-700 text-white px-6 py-3 rounded-lg">Inscription</button>
+    </div>
+  </div>
+
+  <!-- Application -->
+  <div id="app" class="container mx-auto mt-8 hidden">
+
+    <!-- Dashboard -->
+    <div class="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
+      <div class="bg-white p-6 rounded-lg shadow" data-metric="var">
+        <div class="text-sm text-gray-600">VaR (95%)</div>
+        <div class="text-2xl font-bold text-red-600">€0</div>
+      </div>
+      <div class="bg-white p-6 rounded-lg shadow" data-metric="stress">
+        <div class="text-sm text-gray-600">Perte Stress</div>
+        <div class="text-2xl font-bold text-orange-600">€0</div>
+      </div>
+      <div class="bg-white p-6 rounded-lg shadow" data-metric="sharpe">
+        <div class="text-sm text-gray-600">Sharpe</div>
+        <div class="text-2xl font-bold text-green-600">0</div>
+      </div>
+      <div class="bg-white p-6 rounded-lg shadow" data-metric="value">
+        <div class="text-sm text-gray-600">Valeur</div>
+        <div class="text-2xl font-bold text-blue-600">€0</div>
+      </div>
+    </div>
+
+    <!-- Graphique PETIT & COMPACT -->
+    <div class="w-full max-w-xs mx-auto my-6">
+      <canvas id="allocationChart" class="w-full h-48"></canvas>
+    </div>
+
+    <!-- Tabs -->
+    <div class="flex border-b mb-6">
+      <button class="tab px-6 py-3 font-semibold border-b-2 border-blue-600 text-blue-600" data-tab="portfolios">Portefeuilles</button>
+      <button class="tab px-6 py-3 font-semibold" data-tab="simulations">Simulations</button>
+    </div>
+
+    <!-- Portefeuilles -->
+    <div id="portfolios-tab" class="tab-content">
+      <button id="add-portfolio-btn" class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded mb-4">+ Ajouter Portefeuille</button>
+      <div id="portfolios-list" class="grid grid-cols-1 md:grid-cols-2 gap-6"></div>
+    </div>
+
+    <!-- Simulations -->
+    <div id="simulations-tab" class="tab-content hidden">
+      <button id="run-simulation-btn" class="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded mb-4">Lancer Simulation</button>
+      <div id="simulations-list" class="space-y-4"></div>
+    </div>
+  </div>
+
+  <!-- MODALS -->
+  <!-- Connexion -->
+  <div id="login-modal" class="modal">
+    <div class="bg-white p-6 rounded-lg w-96">
+      <h3 class="text-xl font-bold mb-4">Connexion</h3>
+      <form id="login-form">
+        <input type="text" name="username" placeholder="Utilisateur" class="w-full p-2 border mb-3 rounded" required />
+        <input type="password" name="password" placeholder="Mot de passe" class="w-full p-2 border mb-3 rounded" required />
+        <div class="flex justify-end space-x-2">
+          <button type="submit" class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded">Se connecter</button>
+          <button type="button" onclick="closeModal('login-modal')" class="bg-gray-500 hover:bg-gray-600 text-white px-4 py-2 rounded">Annuler</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Inscription -->
+  <div id="register-modal" class="modal">
+    <div class="bg-white p-6 rounded-lg w-96">
+      <h3 class="text-xl font-bold mb-4">Inscription</h3>
+      <form id="register-form">
+        <input type="text" name="username" placeholder="Utilisateur" class="w-full p-2 border mb-3 rounded" required />
+        <input type="email" name="email" placeholder="Email" class="w-full p-2 border mb-3 rounded" required />
+        <input type="password" name="password" placeholder="Mot de passe" class="w-full p-2 border mb-3 rounded" required />
+        <div class="flex justify-end space-x-2">
+          <button type="submit" class="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded">S'inscrire</button>
+          <button type="button" onclick="closeModal('register-modal')" class="bg-gray-500 hover:bg-gray-600 text-white px-4 py-2 rounded">Annuler</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Ajouter Portefeuille -->
+  <div id="portfolio-modal" class="modal">
+    <div class="bg-white p-6 rounded-lg w-full max-w-2xl">
+      <h3 class="text-xl font-bold mb-4">Nouveau Portefeuille</h3>
+      <form id="portfolio-form">
+        <input type="text" name="name" placeholder="Nom du portefeuille" class="w-full p-2 border mb-3 rounded" required />
+        <textarea name="description" placeholder="Description" class="w-full p-2 border mb-3 rounded"></textarea>
+        <div id="assets-container">
+          <div class="asset-row grid grid-cols-5 gap-2 mb-2">
+            <input type="text" placeholder="Nom" class="p-2 border rounded" required />
+            <input type="text" placeholder="Symbole (ex: AAPL)" class="p-2 border rounded" required />
+            <select class="p-2 border rounded">
+              <option value="equity">Actions</option>
+              <option value="bond">Obligations</option>
+              <option value="commodities">Matières premières</option>
+            </select>
+            <input type="number" placeholder="Quantité" class="p-2 border rounded" required />
+            <input type="number" placeholder="Prix d'achat" class="p-2 border rounded" required />
+          </div>
+        </div>
+        <button type="button" onclick="addAssetRow()" class="text-blue-600 text-sm mb-3">+ Ajouter un actif</button>
+        <div class="flex justify-end space-x-2">
+          <button type="submit" class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded">Créer</button>
+          <button type="button" onclick="closeModal('portfolio-modal')" class="bg-gray-500 hover:bg-gray-600 text-white px-4 py-2 rounded">Annuler</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Lancer Simulation -->
+  <div id="simulation-modal" class="modal">
+    <div class="bg-white p-6 rounded-lg w-96">
+      <h3 class="text-xl font-bold mb-4">Lancer Simulation</h3>
+      <form id="simulation-form">
+        <input type="text" name="name" placeholder="Nom de la simulation" class="w-full p-2 border mb-3 rounded" required />
+        <select name="portfolio_id" id="sim-portfolio-select" class="w-full p-2 border mb-3 rounded" required></select>
+        <select name="type" class="w-full p-2 border mb-3 rounded" required>
+          <option value="var">VaR / CVaR</option>
+          <option value="stress_test">Stress Test</option>
+          <option value="backtest">Backtest</option>
+        </select>
+        <div class="flex justify-end space-x-2">
+          <button type="submit" class="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded">Lancer</button>
+          <button type="button" onclick="closeModal('simulation-modal')" class="bg-gray-500 hover:bg-gray-600 text-white px-4 py-2 rounded">Annuler</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <div id="notification" class="fixed bottom-4 right-4 bg-green-600 text-white p-4 rounded shadow-lg hidden"></div>
+
+  <script>
+    const app = {
+      user: null, chart: null,
+
+      async init() {
+        await this.checkAuth();
+        this.bindEvents();
+      },
+
+      async checkAuth() {
+        const res = await fetch('/api/current_user');
+        if (res.ok) {
+          this.user = await res.json();
+          document.getElementById('user-info').innerText = `Connecté: ${this.user.username}`;
+          document.getElementById('login-page').classList.add('hidden');
+          document.getElementById('app').classList.remove('hidden');
+          document.getElementById('logout-btn').classList.remove('hidden');
+          await this.loadDashboard();
+          await this.loadPortfolios();
+        } else {
+          document.getElementById('app').classList.add('hidden');
+          document.getElementById('login-page').classList.remove('hidden');
+        }
+      },
+
+      async loadDashboard() {
+        const res = await fetch('/api/dashboard');
+        const data = await res.json();
+        document.querySelector('[data-metric="var"] .text-2xl').innerText = `€${data.var}`;
+        document.querySelector('[data-metric="stress"] .text-2xl').innerText = `€${data.stress_loss}`;
+        document.querySelector('[data-metric="sharpe"] .text-2xl').innerText = data.sharpe;
+        document.querySelector('[data-metric="value"] .text-2xl').innerText = `€${data.value}`;
+        this.renderChart(data.allocation);
+      },
+
+      renderChart(allocation) {
+        const ctx = document.getElementById('allocationChart').getContext('2d');
+        if (this.chart) this.chart.destroy();
+
+        this.chart = new Chart(ctx, {
+          type: 'doughnut',
+          data: {
+            labels: Object.keys(allocation),
+            datasets: [{
+              data: Object.values(allocation),
+              backgroundColor: ['#3B82F6', '#10B981', '#F59E0B', '#EF4444', '#8B5CF6']
+            }]
+          },
+          options: {
+            responsive: true,
+            cutout: '60%'  // RAYON RÉDUIT À 60%
+          }
+        });
+      },
+
+      async loadPortfolios() {
+        const res = await fetch('/api/portfolios');
+        const ports = await res.json();
+        const list = document.getElementById('portfolios-list');
+        list.innerHTML = ports.map(p => `
+          <div class="bg-white p-6 rounded-lg shadow">
+            <h3 class="font-bold text-lg">${p.name}</h3>
+            <p class="text-gray-600">${p.description}</p>
+            <p class="mt-2">Valeur: <strong>€${p.total_value}</strong> (${p.asset_count} actifs)</p>
+          </div>
+        `).join('');
+        this.updatePortfolioSelect(ports);
+      },
+
+      updatePortfolioSelect(ports) {
+        const select = document.getElementById('sim-portfolio-select');
+        select.innerHTML = ports.map(p => `<option value="${p.id}">${p.name}</option>`).join('');
+      },
+
+      bindEvents() {
+        ['login-btn', 'login-btn-page'].forEach(id => document.getElementById(id).onclick = () => this.openModal('login-modal'));
+        ['register-btn', 'register-btn-page'].forEach(id => document.getElementById(id).onclick = () => this.openModal('register-modal'));
+        document.getElementById('add-portfolio-btn').onclick = () => this.openModal('portfolio-modal');
+        document.getElementById('run-simulation-btn').onclick = () => this.openModal('simulation-modal');
+
+        document.getElementById('logout-btn').onclick = async () => {
+          await fetch('/logout', { method: 'POST' });
+          location.reload();
+        };
+
+        document.getElementById('login-form').onsubmit = async e => {
+          e.preventDefault();
+          const data = Object.fromEntries(new FormData(e.target));
+          const res = await fetch('/login', { method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify(data) });
+          const json = await res.json();
+          if (json.success) location.reload(); else this.notify(json.error, 'error');
+        };
+
+        document.getElementById('register-form').onsubmit = async e => {
+          e.preventDefault();
+          const data = Object.fromEntries(new FormData(e.target));
+          const res = await fetch('/register', { method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify(data) });
+          const json = await res.json();
+          if (json.success) location.reload(); else this.notify(json.error, 'error');
+        };
+
+        document.getElementById('portfolio-form').onsubmit = async e => {
+          e.preventDefault();
+          const form = e.target;
+          const assets = Array.from(form.querySelectorAll('.asset-row')).map(row => {
+            const inputs = row.querySelectorAll('input, select');
+            return { name: inputs[0].value, symbol: inputs[1].value, type: inputs[2].value, quantity: inputs[3].value, purchase_price: inputs[4].value };
+          });
+          const data = { name: form.name.value, description: form.description.value, assets };
+          const res = await fetch('/api/portfolios', { method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify(data) });
+          if (res.ok) { this.closeModal('portfolio-modal'); this.loadPortfolios(); this.notify('Portefeuille créé !'); }
+        };
+
+        document.getElementById('simulation-form').onsubmit = async e => {
+          e.preventDefault();
+          const data = Object.fromEntries(new FormData(e.target));
+          const res = await fetch('/api/simulations', { method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify(data) });
+          const json = await res.json();
+          if (json.success) {
+            this.closeModal('simulation-modal');
+            this.loadSimulations();
+            this.notify('Simulation lancée !');
+            setTimeout(() => window.open(json.pdf_url, '_blank'), 1000);
+          }
+        };
+
+        document.querySelectorAll('.tab').forEach(tab => {
+          tab.onclick = () => {
+            document.querySelectorAll('.tab').forEach(t => t.classList.remove('text-blue-600', 'border-blue-600'));
+            tab.classList.add('text-blue-600', 'border-blue-600');
+            document.querySelectorAll('.tab-content').forEach(c => c.classList.add('hidden'));
+            document.getElementById(tab.dataset.tab + '-tab').classList.remove('hidden');
+          };
+        });
+      },
+
+      async loadSimulations() {
+        const res = await fetch('/api/simulations');
+        const sims = await res.json();
+        const list = document.getElementById('simulations-list');
+        list.innerHTML = sims.map(s => `
+          <div class="bg-white p-4 rounded shadow">
+            <h4 class="font-bold">${s.name} (${s.type})</h4>
+            <p class="text-sm text-gray-600">${new Date(s.created_at).toLocaleString()}</p>
+            <a href="/api/simulations/${s.id}/pdf" target="_blank" class="text-blue-600 text-sm">Télécharger PDF</a>
+          </div>
+        `).join('');
+      },
+
+      openModal(id) { document.getElementById(id).classList.add('active'); },
+      closeModal(id) { document.getElementById(id).classList.remove('active'); },
+      notify(msg, type = 'success') {
+        const n = document.getElementById('notification');
+        n.innerText = msg;
+        n.className = `fixed bottom-4 right-4 p-4 rounded shadow-lg text-white ${type === 'error' ? 'bg-red-600' : 'bg-green-600'}`;
+        n.classList.remove('hidden');
+        setTimeout(() => n.classList.add('hidden'), 4000);
+      }
+    };
+
+    function addAssetRow() {
+      const container = document.getElementById('assets-container');
+      const row = document.createElement('div');
+      row.className = 'asset-row grid grid-cols-5 gap-2 mb-2';
+      row.innerHTML = `
+        <input type="text" placeholder="Nom" class="p-2 border rounded" required />
+        <input type="text" placeholder="Symbole" class="p-2 border rounded" required />
+        <select class="p-2 border rounded">
+          <option value="equity">Actions</option>
+          <option value="bond">Obligations</option>
+          <option value="commodities">Matières premières</option>
+        </select>
+        <input type="number" placeholder="Quantité" class="p-2 border rounded" required />
+        <input type="number" placeholder="Prix" class="p-2 border rounded" required />
+      `;
+      container.appendChild(row);
+    }
+
+    function closeModal(id) { app.closeModal(id); }
+    document.addEventListener('DOMContentLoaded', () => app.init());
+  </script>
+</body>
+</html>
