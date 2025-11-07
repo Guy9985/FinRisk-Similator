@@ -1,9 +1,0 @@
-2025-10-17 14:35:20,369 - WARNING -  * Debugger is active!
-2025-10-17 14:35:20,372 - INFO -  * Debugger PIN: 365-444-652
-2025-10-17 14:35:23,331 - INFO - 127.0.0.1 - - [17/Oct/2025 14:35:23] "GET / HTTP/1.1" 200 -
-2025-10-17 14:35:27,982 - INFO - 127.0.0.1 - - [17/Oct/2025 14:35:27] "[35m[1mPOST /calculate HTTP/1.1[0m" 500 -
-2025-10-17 14:35:28,993 - INFO - 127.0.0.1 - - [17/Oct/2025 14:35:28] "[35m[1mPOST /calculate HTTP/1.1[0m" 500 -
-2025-10-17 14:35:51,178 - INFO - 127.0.0.1 - - [17/Oct/2025 14:35:51] "[35m[1mPOST /calculate HTTP/1.1[0m" 500 -
-2025-10-17 14:35:53,676 - INFO - 127.0.0.1 - - [17/Oct/2025 14:35:53] "[35m[1mPOST /calculate HTTP/1.1[0m" 500 -
-2025-10-17 14:35:53,853 - INFO - 127.0.0.1 - - [17/Oct/2025 14:35:53] "[35m[1mPOST /calculate HTTP/1.1[0m" 500 -
-2025-10-17 14:54:07,576 - INFO -  * Detected change in 'C:\\Users\\HP1\\PycharmProjects\\DjangoProject\\Moteur\\app.py', reloading

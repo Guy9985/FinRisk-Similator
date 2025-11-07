@@ -1,5 +1,0 @@
-Flask==3.0.3
-Flask-Login==0.6.3
-Werkzeug==3.0.4
-FPDF==1.7.2
-SQLAlchemy==2.0.35
