@@ -113,6 +113,6 @@ Ce projet est sous licence [MIT](https://opensource.org/licenses/MIT) - voir le 
 
 ## 📧 Contact
 
-Enock NIHORIMBERE - [Votre adresse e-mail ou profil LinkedIn]
-Lien du Projet : [https://github.com/votre-nom-utilisateur/FinRisk](https://github.com/votre-nom-utilisateur/FinRisk)
+Guy Oreste NDIKUMASABO - [guyorestendi@gmail.com]
+Lien du Projet : [https://github.com/Guy9985/FinRisk](https://github.com/Guy9985/FinRisk)
 s
